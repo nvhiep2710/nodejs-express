@@ -1,7 +1,8 @@
 const User = require("../models/User");
 const {
   registerValidation,
-  loginValidation
+  loginValidation,
+  loginSocialValidation
 } = require("./validation/AuthValidation");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -37,6 +38,66 @@ module.exports.login = async (req, res) => {
         access_token: token
       }
     });
+  } catch (err) {
+    res.status(400).json({ message: err });
+  }
+};
+
+module.exports.loginsocial = async (req, res) => {
+  const { error } = loginSocialValidation(req.body);
+  if (error) return res.status(400).send(error);
+  try {
+    const userSocial = await User.findOne({
+      social_id: req.body.social_id,
+      social_type: req.body.social_type
+    });
+    if (!userSocial) {
+      const user = new User({
+        name: req.body.name ? req.body.name : "User new",
+        email: "notemail@gmail.com",
+        password: "loginsocial",
+        social_id: req.body.social_id,
+        social_type: req.body.social_type
+      });
+      const usernew = await user.save();
+      const tokennew = jwt.sign(
+        { _id: usernew._id },
+        process.env.TOKEN_SECRET,
+        {
+          expiresIn: "1d"
+        }
+      );
+      res.status(200).json({
+        status: 200,
+        message: "Register success, Login social success",
+        data: {
+          user: {
+            name: usernew.name,
+            email: usernew.email
+          },
+          access_token: tokennew
+        }
+      });
+    } else {
+      const token = jwt.sign(
+        { _id: userSocial._id },
+        process.env.TOKEN_SECRET,
+        {
+          expiresIn: "1d"
+        }
+      );
+      res.status(200).json({
+        status: 200,
+        message: "Login social success",
+        data: {
+          user: {
+            name: userSocial.name,
+            email: userSocial.email
+          },
+          access_token: token
+        }
+      });
+    }
   } catch (err) {
     res.status(400).json({ message: err });
   }

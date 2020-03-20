@@ -9,7 +9,6 @@ module.exports = async (req, res, next) => {
   try {
     const verfied = jwt.verify(token, process.env.TOKEN_SECRET);
     const user = await User.findOne({ _id: verfied._id });
-    console.log(user);
     if (!user) {
       throw new Error();
     }

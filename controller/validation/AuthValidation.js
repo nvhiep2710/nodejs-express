@@ -27,5 +27,15 @@ const loginValidation = data => {
   return schema.validate(data);
 };
 
+const loginSocialValidation = data => {
+  const schema = Joi.object({
+    social_id: Joi.string().required(),
+    social_type: Joi.string().required(),
+    name: Joi.string()
+  });
+  return schema.validate(data);
+};
+
 module.exports.registerValidation = registerValidation;
 module.exports.loginValidation = loginValidation;
+module.exports.loginSocialValidation = loginSocialValidation;

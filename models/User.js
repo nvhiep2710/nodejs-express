@@ -19,6 +19,14 @@ const UserSchema = mongoose.Schema({
     max: 255,
     min: 6
   },
+  social_id: {
+    type: String,
+    default: ""
+  },
+  social_type: {
+    type: String,
+    default: ""
+  },
   date: {
     type: Date,
     default: Date.now
