@@ -19,6 +19,11 @@ const UserSchema = mongoose.Schema({
     max: 255,
     min: 6
   },
+  avatar: {
+    type: String,
+    required: false,
+    default: ""
+  },
   social_id: {
     type: String,
     default: ""

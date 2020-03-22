@@ -1,15 +1,8 @@
 const User = require("../models/User");
-const {
-  registerValidation,
-  loginValidation,
-  loginSocialValidation
-} = require("./validation/AuthValidation");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 module.exports.login = async (req, res) => {
-  const { error } = loginValidation(res.body);
-  if (error) return res.status(400).send(error);
   try {
     const user = await User.findOne({ email: req.body.email });
     if (!user)
@@ -44,8 +37,6 @@ module.exports.login = async (req, res) => {
 };
 
 module.exports.loginsocial = async (req, res) => {
-  const { error } = loginSocialValidation(req.body);
-  if (error) return res.status(400).send(error);
   try {
     const userSocial = await User.findOne({
       social_id: req.body.social_id,
@@ -104,9 +95,6 @@ module.exports.loginsocial = async (req, res) => {
 };
 
 module.exports.register = async (req, res) => {
-  const { error } = registerValidation(req.body);
-  if (error) return res.status(400).send(error);
-
   try {
     const emailExist = await User.findOne({ email: req.body.email });
 

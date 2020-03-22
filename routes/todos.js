@@ -1,26 +1,28 @@
 const express = require("express");
 const router = express.Router();
 const totoController = require("../controller/todoController");
-const isLoggedIn = require("../routes/isLoggedIn");
-/* GET list todo. */
-router.get("/", isLoggedIn, totoController.index);
+const authMiddleware = require("../middleware/authMiddleware");
+const validate = require("../validate/todoValidation");
 
-/* POST add todo. */
-router.post("/add", isLoggedIn, totoController.create);
+/* GET list todo. */
+router.get("/", authMiddleware, totoController.index);
+
+/* POST create todo. */
+router.post("/", authMiddleware, validate.create, totoController.create);
 
 /* GET find todo. */
-router.get("/:id", isLoggedIn, totoController.find);
+router.get("/:id", authMiddleware, totoController.find);
 
-/* PATCH update todo. */
-router.patch("/:id", isLoggedIn, totoController.update);
+/* PUTH update todo by id. */
+router.put("/:id", authMiddleware, validate.update, totoController.update);
 
-/* DELETE delete todo. */
-router.delete("/:id", isLoggedIn, totoController.delete);
+/* POST update status todos . */
+router.put("/", authMiddleware, validate.update, totoController.updateMany);
 
-/* POST change status todo. */
-router.post("/change-status", isLoggedIn, totoController.changeStatus);
+/* DELETE delete todo by id. */
+router.delete("/:id", authMiddleware, totoController.delete);
 
-/* DELETE delete todo complete. */
-router.delete("/delete/complete", isLoggedIn, totoController.deleteComplele);
+/* DELETE delete todos complete. */
+router.delete("/", authMiddleware, totoController.deleteComplele);
 
 module.exports = router;

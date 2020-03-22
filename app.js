@@ -1,6 +1,7 @@
 var express = require("express");
 var todosRouter = require("./routes/todos");
 var authRouter = require("./routes/auth");
+var usersRouter = require("./routes/users");
 require("dotenv/config");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -9,9 +10,14 @@ const mongoose = require("mongoose");
 var app = express();
 mongoose.connect(
   process.env.DB_CONNECTION_LOCAL,
-  { useNewUrlParser: true, useUnifiedTopology: true },
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+    useNewUrlParser: true
+  },
   () => {
-    console.log("success");
+    console.log("connect db success");
   }
 );
 // Middleware
@@ -20,7 +26,8 @@ app.use(express.json());
 app.use(bodyParser.json());
 
 app.use("/", authRouter);
-app.use("/todo", todosRouter);
+app.use("/todos", todosRouter);
+app.use("/users", usersRouter);
 
 module.exports = app;
 

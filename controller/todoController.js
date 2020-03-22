@@ -1,7 +1,11 @@
 const Todo = require("../models/Todo");
-const { createValidation } = require("./validation/TodoValidation");
 
 module.exports.index = async (req, res) => {
+  // var page = parseInt(req.query.page) || 1;
+  // var limit = 8;
+  // var start = (page - 1) * limit;
+  // var end = page * limit;
+  // await Todo.find().slice(start, end);
   const seletor = req.query.status
     ? { status: req.query.status, user_id: req.user._id }
     : { user_id: req.user._id };
@@ -33,17 +37,13 @@ module.exports.index = async (req, res) => {
 };
 
 module.exports.create = async (req, res) => {
-  const { error } = createValidation(res.body);
-  if (error) return res.status(400).send(error);
   const todo = new Todo({
     user_id: req.user._id,
     title: req.body.title
   });
   try {
-    const saveTodo = await todo.save();
-    res
-      .status(201)
-      .json({ status: 200, message: "add todo success", data: saveTodo });
+    await todo.save();
+    res.status(201).json({ status: 200, message: "Add todo success" });
   } catch (err) {
     res.status(400).json({ message: err });
   }
@@ -51,10 +51,17 @@ module.exports.create = async (req, res) => {
 
 module.exports.find = async (req, res) => {
   try {
-    const todo = await Todo.findById(req.params.id);
-    res
-      .status(201)
-      .json({ status: 200, message: "get todo by id success", data: todo });
+    const findTodo = await Todo.findOne({
+      _id: req.params.id,
+      user_id: req.user._id
+    }).select("_id title status");
+    if (findTodo)
+      res.status(201).json({
+        status: 200,
+        message: "get todo by id success",
+        data: findTodo
+      });
+    else res.status(400).json({ message: "Action does exist" });
   } catch (err) {
     res.status(400).json({ message: err });
   }
@@ -62,13 +69,23 @@ module.exports.find = async (req, res) => {
 
 module.exports.update = async (req, res) => {
   try {
-    const updateTodo = await Todo.updateOne(
-      { _id: req.params.id },
-      { $set: { status: req.body.status } }
-    );
-    res
-      .status(201)
-      .json({ status: 200, message: "update todo success", data: updateTodo });
+    const findTodo = await Todo.findOne({
+      _id: req.params.id,
+      user_id: req.user._id
+    });
+    if (findTodo) {
+      const updateTodo = await Todo.updateOne(
+        { _id: req.params.id },
+        { $set: { status: req.body.status } }
+      );
+      res.status(201).json({
+        status: 200,
+        message: "update todo success",
+        data: updateTodo._id
+      });
+    } else {
+      res.status(400).json({ message: "Action does exist" });
+    }
   } catch (err) {
     res.status(400).json({ message: err });
   }
@@ -81,11 +98,10 @@ module.exports.delete = async (req, res) => {
       user_id: req.user._id
     });
     if (findTodo) {
-      const removeTodo = await Todo.remove({ _id: req.params.id });
+      await Todo.remove({ _id: req.params.id });
       res.status(201).json({
         status: 200,
-        message: "Delete todo success",
-        data: removeTodo
+        message: "Delete todo success"
       });
     } else {
       res.status(400).json({ message: "Action does exist" });
@@ -95,12 +111,24 @@ module.exports.delete = async (req, res) => {
   }
 };
 
-module.exports.changeStatus = async (req, res) => {
+module.exports.updateMany = async (req, res) => {
   try {
-    const data = await Todo.updateMany({ status: req.body.status });
-    res
-      .status(201)
-      .json({ status: 200, message: "chang status todo success", data: data });
+    const findTodo = await Todo.find({
+      user_id: req.user._id
+    });
+    if (findTodo) {
+      await Todo.updateMany(
+        { user_id: req.user._id },
+        {
+          status: req.body.status
+        }
+      );
+      res.status(201).json({
+        status: 200,
+        message: "Change status todos success"
+      });
+    } else
+      res.status(201).json({ status: 200, message: "Does not exist todo" });
   } catch (err) {
     res.status(400).json({ message: err });
   }
@@ -108,10 +136,16 @@ module.exports.changeStatus = async (req, res) => {
 
 module.exports.deleteComplele = async (req, res) => {
   try {
-    await Todo.deleteMany({ status: true });
-    res
-      .status(201)
-      .json({ status: 200, message: "Delete todo complete success" });
+    const findTodo = await Todo.find({ user_id: req.user._id, status: true });
+    if (findTodo.length > 0) {
+      await Todo.deleteMany({ user_id: req.user._id, status: true });
+      res
+        .status(201)
+        .json({ status: 200, message: "Delete todo complete success" });
+    } else
+      res
+        .status(201)
+        .json({ status: 200, message: "Does not exist todo complete" });
   } catch (err) {
     res.status(400).json({ message: err });
   }
